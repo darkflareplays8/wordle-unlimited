@@ -235,9 +235,9 @@
 
   const WORD_LENGTH = 5;
   const MAX_GUESSES = 6;
-  const WORD_ENDPOINT = "/api/word";
+  const WORDS_FILE = "words.txt";
+  const NO_REPEAT_HISTORY = 50;
 
-  // Used only if the API is unreachable (offline, function not deployed, etc.)
   const LOCAL_FALLBACK = [
     "plane","crane","stone","grape","flame","smile","brick","cloud","dance",
     "eagle","frost","ghost","house","input","jolly","knife","lemon","mango",
@@ -249,6 +249,7 @@
     "orbit","plume","quake","ridge","spore","trove","usher","vigor","wharf"
   ];
 
+  let wordBank = null;
   let answer = "";
   let guesses = [];
   let currentGuess = "";
@@ -302,24 +303,52 @@
     });
   }
 
-  async function fetchWord(){
-    loadingWord = true;
-    setStatus("loading word…");
+  async function loadWordBank(){
+    if(wordBank) return wordBank;
     try{
-      const res = await fetch(WORD_ENDPOINT, { cache: "no-store" });
+      const res = await fetch(WORDS_FILE, { cache: "no-store" });
       if(!res.ok) throw new Error("bad response");
-      const data = await res.json();
-      if(data && typeof data.word === "string" && /^[a-z]{5}$/i.test(data.word)){
-        loadingWord = false;
-        setStatus("");
-        return data.word.toLowerCase();
-      }
-      throw new Error("malformed word");
+      const text = await res.text();
+      const words = text
+        .split(/\r?\n/)
+        .map(w => w.trim().toLowerCase())
+        .filter(w => /^[a-z]{5}$/.test(w));
+      if(words.length === 0) throw new Error("empty word list");
+      wordBank = words;
     }catch(err){
-      loadingWord = false;
-      setStatus("");
-      return LOCAL_FALLBACK[Math.floor(Math.random() * LOCAL_FALLBACK.length)];
+      wordBank = LOCAL_FALLBACK;
     }
+    return wordBank;
+  }
+
+  function getRecentWords(){
+    try{
+      return JSON.parse(sessionStorage.getItem("wordleRecent") || "[]");
+    }catch{
+      return [];
+    }
+  }
+
+  function rememberWord(word){
+    const recent = getRecentWords();
+    recent.push(word);
+    const trimmed = recent.slice(-NO_REPEAT_HISTORY);
+    try{
+      sessionStorage.setItem("wordleRecent", JSON.stringify(trimmed));
+    }catch{
+    }
+  }
+
+  async function pickWord(){
+    const bank = await loadWordBank();
+    const recent = new Set(getRecentWords());
+
+    let pool = bank.filter(w => !recent.has(w));
+    if(pool.length === 0) pool = bank;
+
+    const word = pool[Math.floor(Math.random() * pool.length)];
+    rememberWord(word);
+    return word;
   }
 
   async function startRound(){
@@ -328,8 +357,11 @@
     currentGuess = "";
     buildGrid();
     resetKeyboardColors();
+    loadingWord = true;
+    setStatus("loading word…");
+    answer = await pickWord();
+    loadingWord = false;
     setStatus("");
-    answer = await fetchWord();
   }
 
   function setStatus(msg){
@@ -438,9 +470,6 @@
     }
   }
 
-  // Same precedence as real Wordle: a key can upgrade absent -> present -> correct,
-  // but never downgrade (e.g. if a letter is correct in one guess and present-but-
-  // wrong-spot in an earlier guess for some other reason, correct always wins and sticks).
   const keyPriority = { absent:0, present:1, correct:2 };
   function updateKeyboardColors(guess, result){
     for(let i=0;i<WORD_LENGTH;i++){
