@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Wordle Unlimited</title>
+<link rel="icon" type="image/png" href="icon.png" />
 <style>
   :root{
     --bg:#ffffff;
@@ -296,7 +297,10 @@
         if(k === "enter" || k === "back") btn.classList.add("wide");
         btn.textContent = k === "back" ? "⌫" : (k === "enter" ? "enter" : k);
         btn.setAttribute("aria-label", k === "back" ? "Backspace" : k === "enter" ? "Enter" : k);
-        btn.addEventListener("click", () => handleKey(k));
+        btn.addEventListener("click", () => {
+          handleKey(k);
+          btn.blur();
+        });
         krow.appendChild(btn);
       });
       keyboardEl.appendChild(krow);
