@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#121213" id="themeColor" />
 <title>Wordle Unlimited</title>
 <link rel="icon" type="image/png" href="icon.png" />
 <style>
@@ -30,21 +31,28 @@
     --key-text:#ffffff;
   }
 
-  body{ transition:background .15s, color .15s; }
-
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+
+  html,
+  body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    background:var(--bg);
+    overscroll-behavior-y:none;
+  }
 
   body{
     min-height:100vh;
     min-height:100dvh;
     background:var(--bg);
     color:var(--text);
-    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-family:'Helvetica Neue',Arial,sans-serif;
     display:flex;
     flex-direction:column;
     align-items:center;
-    padding-bottom:env(safe-area-inset-bottom, 0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    transition:background .15s,color .15s;
   }
 
   header{
@@ -57,12 +65,14 @@
     position:relative;
     border-bottom:1px solid var(--border);
   }
+
   header h1{
     margin:0;
     font-size:24px;
     font-weight:700;
-    letter-spacing:0.02em;
+    letter-spacing:.02em;
   }
+
   #themeToggle{
     position:absolute;
     right:20px;
@@ -101,48 +111,67 @@
 
   #grid{
     display:grid;
-    grid-template-rows:repeat(6, 1fr);
+    grid-template-rows:repeat(6,1fr);
     gap:5px;
-    width:min(330px, 86vw);
+    width:min(330px,86vw);
   }
+
   .row{
     display:grid;
-    grid-template-columns:repeat(5, 1fr);
+    grid-template-columns:repeat(5,1fr);
     gap:5px;
   }
+
   .tile{
     aspect-ratio:1;
     border:2px solid var(--border);
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:clamp(20px, 7vw, 28px);
+    font-size:clamp(20px,7vw,28px);
     font-weight:700;
     text-transform:uppercase;
     color:var(--text);
     background:var(--bg);
     user-select:none;
   }
-  .tile.filled{ border-color:var(--border-filled); }
 
-  .tile.flip{ animation:flip .5s ease forwards; }
+  .tile.filled{border-color:var(--border-filled);}
+
+  .tile.flip{animation:flip .5s ease forwards;}
+
   @keyframes flip{
-    0%{ transform:rotateX(0deg); }
-    50%{ transform:rotateX(90deg); }
-    51%{ transform:rotateX(90deg); }
-    100%{ transform:rotateX(0deg); }
+    0%{transform:rotateX(0deg);}
+    50%{transform:rotateX(90deg);}
+    51%{transform:rotateX(90deg);}
+    100%{transform:rotateX(0deg);}
   }
 
-  .tile.correct{ background:var(--correct); border-color:var(--correct); color:#fff; }
-  .tile.present{ background:var(--present); border-color:var(--present); color:#fff; }
-  .tile.absent{ background:var(--absent); border-color:var(--absent); color:#fff; }
+  .tile.correct{
+    background:var(--correct);
+    border-color:var(--correct);
+    color:#fff;
+  }
 
-  .tile.shake{ animation:shake .3s ease; }
+  .tile.present{
+    background:var(--present);
+    border-color:var(--present);
+    color:#fff;
+  }
+
+  .tile.absent{
+    background:var(--absent);
+    border-color:var(--absent);
+    color:#fff;
+  }
+
+  .tile.shake{animation:shake .3s ease;}
+
   @keyframes shake{
-    10%,90%{ transform:translateX(-1px); }
-    20%,80%{ transform:translateX(2px); }
-    30%,50%,70%{ transform:translateX(-4px); }
-    40%,60%{ transform:translateX(4px); }
+    10%,90%{transform:translateX(-1px);}
+    20%,80%{transform:translateX(2px);}
+    30%,50%,70%{transform:translateX(-4px);}
+    40%,60%{transform:translateX(4px);}
   }
 
   #keyboard{
@@ -153,11 +182,13 @@
     gap:8px;
     padding:0 8px 16px;
   }
+
   .krow{
     display:flex;
     justify-content:center;
     gap:6px;
   }
+
   .key{
     flex:1;
     max-width:44px;
@@ -178,16 +209,31 @@
     -webkit-tap-highlight-color:transparent;
     user-select:none;
   }
-  .key:active{ opacity:0.7; }
+
+  .key:active{opacity:.7;}
+
   .key.wide{
     max-width:66px;
     font-size:12px;
     flex:1.5;
   }
-  .key svg{ pointer-events:none; }
-  .key.correct{ background:var(--correct); color:#fff; }
-  .key.present{ background:var(--present); color:#fff; }
-  .key.absent{ background:var(--absent); color:#fff; }
+
+  .key svg{pointer-events:none;}
+
+  .key.correct{
+    background:var(--correct);
+    color:#fff;
+  }
+
+  .key.present{
+    background:var(--present);
+    color:#fff;
+  }
+
+  .key.absent{
+    background:var(--absent);
+    color:#fff;
+  }
 
   #toast{
     position:fixed;
@@ -202,21 +248,34 @@
     font-size:14px;
     opacity:0;
     pointer-events:none;
-    transition:opacity .15s, transform .15s;
+    transition:opacity .15s,transform .15s;
     z-index:50;
   }
-  #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  #toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
 
   .overlay{
-    position:fixed; inset:0;
-    background:rgba(0,0,0,0.5);
-    display:flex; align-items:center; justify-content:center;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    display:flex;
+    align-items:center;
+    justify-content:center;
     z-index:60;
-    opacity:0; pointer-events:none;
+    opacity:0;
+    pointer-events:none;
     transition:opacity .15s;
     padding:20px;
   }
-  .overlay.show{ opacity:1; pointer-events:auto; }
+
+  .overlay.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+
   .modal{
     background:var(--bg);
     border-radius:8px;
@@ -225,14 +284,25 @@
     width:100%;
     text-align:center;
   }
-  .modal h2{ margin:0 0 8px; font-size:20px; }
-  .modal p{ font-size:14px; color:#555; margin:0 0 16px; }
+
+  .modal h2{
+    margin:0 0 8px;
+    font-size:20px;
+  }
+
+  .modal p{
+    font-size:14px;
+    color:#555;
+    margin:0 0 16px;
+  }
+
   .modal .answer{
     font-size:22px;
     font-weight:700;
-    letter-spacing:0.1em;
+    letter-spacing:.1em;
     margin-bottom:16px;
   }
+
   .btn-primary{
     width:100%;
     background:var(--correct);
@@ -247,19 +317,30 @@
   }
 
   @media (max-width:400px){
-    .key{ height:50px; font-size:13px; }
-    .key.wide{ font-size:11px; }
-    #keyboard{ gap:6px; padding:0 4px 12px; }
-    .krow{ gap:4px; }
+    .key{
+      height:50px;
+      font-size:13px;
+    }
+
+    .key.wide{font-size:11px;}
+
+    #keyboard{
+      gap:6px;
+      padding:0 4px 12px;
+    }
+
+    .krow{gap:4px;}
   }
 
-  @media (prefers-reduced-motion: reduce){
-    .tile.flip, .tile.shake{ animation:none !important; }
+  @media (prefers-reduced-motion:reduce){
+    .tile.flip,
+    .tile.shake{
+      animation:none!important;
+    }
   }
 </style>
 </head>
 <body>
-
 <header>
   <h1>Wordle Unlimited</h1>
   <button id="themeToggle" aria-label="Toggle dark mode">🌙</button>
@@ -271,7 +352,6 @@
 </main>
 
 <div id="keyboard" aria-label="On-screen keyboard"></div>
-
 <div id="toast"></div>
 
 <div class="overlay" id="endOverlay">
@@ -315,6 +395,7 @@
   const statusRow = document.getElementById("statusRow");
   const toastEl = document.getElementById("toast");
   const endOverlay = document.getElementById("endOverlay");
+  const themeColor = document.getElementById("themeColor");
 
   function buildGrid(){
     gridEl.innerHTML = "";
@@ -343,42 +424,59 @@
     KEY_ROWS.forEach(rowKeys => {
       const krow = document.createElement("div");
       krow.className = "krow";
+
       rowKeys.forEach(k => {
         const btn = document.createElement("button");
         btn.className = "key";
         btn.dataset.key = k;
-        if(k === "enter" || k === "back") btn.classList.add("wide");
+
+        if(k === "enter" || k === "back"){
+          btn.classList.add("wide");
+        }
+
         if(k === "back"){
           btn.innerHTML = `<svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1L1 7L8 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 7H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-        } else {
+        }else{
           btn.textContent = k === "enter" ? "enter" : k;
         }
-        btn.setAttribute("aria-label", k === "back" ? "Backspace" : k === "enter" ? "Enter" : k);
+
+        btn.setAttribute(
+          "aria-label",
+          k === "back" ? "Backspace" : k === "enter" ? "Enter" : k
+        );
+
         btn.addEventListener("click", () => {
           handleKey(k);
           btn.blur();
         });
+
         krow.appendChild(btn);
       });
+
       keyboardEl.appendChild(krow);
     });
   }
 
   async function loadWordBank(){
     if(wordBank) return wordBank;
+
     try{
-      const res = await fetch(WORDS_FILE, { cache: "no-store" });
+      const res = await fetch(WORDS_FILE,{cache:"no-store"});
       if(!res.ok) throw new Error("bad response");
+
       const text = await res.text();
       const words = text
         .split(/\r?\n/)
         .map(w => w.trim().toLowerCase())
         .filter(w => /^[a-z]{5}$/.test(w));
+
       if(words.length === 0) throw new Error("empty word list");
+
       wordBank = words;
     }catch(err){
       wordBank = LOCAL_FALLBACK;
     }
+
     return wordBank;
   }
 
@@ -394,10 +492,10 @@
     const recent = getRecentWords();
     recent.push(word);
     const trimmed = recent.slice(-NO_REPEAT_HISTORY);
+
     try{
-      sessionStorage.setItem("wordleRecent", JSON.stringify(trimmed));
-    }catch{
-    }
+      sessionStorage.setItem("wordleRecent",JSON.stringify(trimmed));
+    }catch{}
   }
 
   async function pickWord(){
@@ -409,6 +507,7 @@
 
     const word = pool[Math.floor(Math.random() * pool.length)];
     rememberWord(word);
+
     return word;
   }
 
@@ -416,11 +515,15 @@
     gameOver = false;
     guesses = [];
     currentGuess = "";
+
     buildGrid();
     resetKeyboardColors();
+
     loadingWord = true;
     setStatus("loading word…");
+
     answer = await pickWord();
+
     loadingWord = false;
     setStatus("");
   }
@@ -430,25 +533,32 @@
   }
 
   let toastTimer = null;
+
   function showToast(msg){
     clearTimeout(toastTimer);
+
     toastEl.textContent = msg;
     toastEl.classList.add("show");
-    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1300);
+
+    toastTimer = setTimeout(() => {
+      toastEl.classList.remove("show");
+    },1300);
   }
 
   function handleKey(key){
     if(gameOver || loadingWord) return;
 
     if(key === "back"){
-      currentGuess = currentGuess.slice(0, -1);
+      currentGuess = currentGuess.slice(0,-1);
       renderCurrentRow();
       return;
     }
+
     if(key === "enter"){
       submitGuess();
       return;
     }
+
     if(/^[a-z]$/.test(key) && currentGuess.length < WORD_LENGTH){
       currentGuess += key;
       renderCurrentRow();
@@ -457,20 +567,29 @@
 
   function renderCurrentRow(){
     const r = guesses.length;
+
     for(let c=0;c<WORD_LENGTH;c++){
       const tile = document.getElementById(`tile-${r}-${c}`);
       const letter = currentGuess[c] || "";
+
       tile.textContent = letter.toUpperCase();
-      tile.classList.toggle("filled", !!letter);
+      tile.classList.toggle("filled",!!letter);
     }
   }
 
   function shakeRow(){
     const r = guesses.length;
     const row = document.getElementById("row-" + r);
+
     row.classList.remove("shake");
-    requestAnimationFrame(() => row.classList.add("shake"));
-    setTimeout(() => row.classList.remove("shake"), 320);
+
+    requestAnimationFrame(() => {
+      row.classList.add("shake");
+    });
+
+    setTimeout(() => {
+      row.classList.remove("shake");
+    },320);
   }
 
   function submitGuess(){
@@ -480,9 +599,10 @@
       return;
     }
 
-    const result = scoreGuess(currentGuess, answer);
-    revealRow(guesses.length, currentGuess, result);
-    updateKeyboardColors(currentGuess, result);
+    const result = scoreGuess(currentGuess,answer);
+
+    revealRow(guesses.length,currentGuess,result);
+    updateKeyboardColors(currentGuess,result);
 
     guesses.push(currentGuess);
 
@@ -490,15 +610,15 @@
     const lastRow = guesses.length === MAX_GUESSES;
 
     if(won){
-      setTimeout(() => endRound(true), 650);
+      setTimeout(() => endRound(true),650);
     }else if(lastRow){
-      setTimeout(() => endRound(false), 650);
+      setTimeout(() => endRound(false),650);
     }
 
     currentGuess = "";
   }
 
-  function scoreGuess(guess, ans){
+  function scoreGuess(guess,ans){
     const result = new Array(WORD_LENGTH).fill("absent");
     const ansArr = ans.split("");
     const used = new Array(WORD_LENGTH).fill(false);
@@ -509,35 +629,51 @@
         used[i] = true;
       }
     }
+
     for(let i=0;i<WORD_LENGTH;i++){
       if(result[i] === "correct") continue;
-      const idx = ansArr.findIndex((ch, j) => ch === guess[i] && !used[j]);
+
+      const idx = ansArr.findIndex((ch,j) => {
+        return ch === guess[i] && !used[j];
+      });
+
       if(idx !== -1){
         result[i] = "present";
         used[idx] = true;
       }
     }
+
     return result;
   }
 
-  function revealRow(r, guess, result){
+  function revealRow(r,guess,result){
     for(let c=0;c<WORD_LENGTH;c++){
       const tile = document.getElementById(`tile-${r}-${c}`);
+
       tile.textContent = guess[c].toUpperCase();
+
       setTimeout(() => {
         tile.classList.add(result[c]);
         tile.classList.add("flip");
-      }, c * 90);
+      },c * 90);
     }
   }
 
-  const keyPriority = { absent:0, present:1, correct:2 };
-  function updateKeyboardColors(guess, result){
+  const keyPriority = {
+    absent:0,
+    present:1,
+    correct:2
+  };
+
+  function updateKeyboardColors(guess,result){
     for(let i=0;i<WORD_LENGTH;i++){
       const btn = keyboardEl.querySelector(`.key[data-key="${guess[i]}"]`);
+
       if(!btn) continue;
+
       const newState = result[i];
       const current = btn.dataset.state;
+
       if(!current || keyPriority[newState] > keyPriority[current]){
         btn.dataset.state = newState;
         btn.classList.remove("correct","present","absent");
@@ -555,55 +691,80 @@
 
   function endRound(won){
     document.getElementById("endTitle").textContent = won ? "You got it!" : "Out of guesses";
+
     document.getElementById("endBody").textContent = won
       ? `Solved in ${guesses.length} ${guesses.length === 1 ? "guess" : "guesses"}.`
       : "Here's the word:";
+
     document.getElementById("endWord").textContent = answer.toUpperCase();
+
     gameOver = true;
     endOverlay.classList.add("show");
   }
 
-  document.getElementById("nextBtn").addEventListener("click", async () => {
+  document.getElementById("nextBtn").addEventListener("click",async () => {
     endOverlay.classList.remove("show");
     await startRound();
   });
 
-  window.addEventListener("keydown", (e) => {
+  window.addEventListener("keydown",e => {
     if(endOverlay.classList.contains("show")) return;
+
     const key = e.key.toLowerCase();
+
     if(key === "enter") return handleKey("enter");
     if(key === "backspace") return handleKey("back");
     if(/^[a-z]$/.test(key)) return handleKey(key);
   });
 
   const ICONS = {
-    light: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
-    dark: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
+    light:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+    dark:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
   };
 
   (async function init(){
     const savedTheme = localStorage.getItem("wordleTheme");
-    if(savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+
+    if(savedTheme){
+      document.documentElement.setAttribute("data-theme",savedTheme);
+    }
+
     const toggleBtn = document.getElementById("themeToggle");
+
     function updateIcon(){
       const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+
       toggleBtn.innerHTML = isDark ? ICONS.light : ICONS.dark;
-      toggleBtn.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+
+      toggleBtn.setAttribute(
+        "aria-label",
+        isDark ? "Switch to light mode" : "Switch to dark mode"
+      );
+
+      themeColor.setAttribute(
+        "content",
+        isDark ? "#121213" : "#ffffff"
+      );
     }
+
     updateIcon();
-    toggleBtn.addEventListener("click", () => {
+
+    toggleBtn.addEventListener("click",() => {
       const isDark = document.documentElement.getAttribute("data-theme") === "dark";
       const next = isDark ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("wordleTheme", next);
+
+      document.documentElement.setAttribute("data-theme",next);
+      localStorage.setItem("wordleTheme",next);
+
       updateIcon();
     });
+
     buildKeyboard();
     buildGrid();
+
     await startRound();
   })();
 })();
 </script>
-
 </body>
 </html>
