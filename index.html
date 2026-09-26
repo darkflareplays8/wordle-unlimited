@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -240,8 +241,8 @@
     top:16px;
     left:50%;
     transform:translateX(-50%) translateY(-12px);
-    background:var(--text);
-    color:#fff;
+    background:#ffffff;
+    color:#121213;
     font-weight:700;
     padding:10px 18px;
     border-radius:6px;
@@ -255,6 +256,11 @@
   #toast.show{
     opacity:1;
     transform:translateX(-50%) translateY(0);
+  }
+
+  [data-theme="dark"] #toast{
+    background:#ffffff;
+    color:#121213;
   }
 
   .overlay{
@@ -292,7 +298,7 @@
 
   .modal p{
     font-size:14px;
-    color:#555;
+    color:var(--text);
     margin:0 0 16px;
   }
 
@@ -399,16 +405,19 @@
 
   function buildGrid(){
     gridEl.innerHTML = "";
+
     for(let r=0;r<MAX_GUESSES;r++){
       const row = document.createElement("div");
       row.className = "row";
       row.id = "row-" + r;
+
       for(let c=0;c<WORD_LENGTH;c++){
         const tile = document.createElement("div");
         tile.className = "tile";
         tile.id = `tile-${r}-${c}`;
         row.appendChild(tile);
       }
+
       gridEl.appendChild(row);
     }
   }
@@ -421,6 +430,7 @@
 
   function buildKeyboard(){
     keyboardEl.innerHTML = "";
+
     KEY_ROWS.forEach(rowKeys => {
       const krow = document.createElement("div");
       krow.className = "krow";
@@ -462,18 +472,24 @@
 
     try{
       const res = await fetch(WORDS_FILE,{cache:"no-store"});
-      if(!res.ok) throw new Error("bad response");
+
+      if(!res.ok){
+        throw new Error("bad response");
+      }
 
       const text = await res.text();
+
       const words = text
         .split(/\r?\n/)
         .map(w => w.trim().toLowerCase())
         .filter(w => /^[a-z]{5}$/.test(w));
 
-      if(words.length === 0) throw new Error("empty word list");
+      if(words.length === 0){
+        throw new Error("empty word list");
+      }
 
       wordBank = words;
-    }catch(err){
+    }catch{
       wordBank = LOCAL_FALLBACK;
     }
 
@@ -491,10 +507,12 @@
   function rememberWord(word){
     const recent = getRecentWords();
     recent.push(word);
-    const trimmed = recent.slice(-NO_REPEAT_HISTORY);
 
     try{
-      sessionStorage.setItem("wordleRecent",JSON.stringify(trimmed));
+      sessionStorage.setItem(
+        "wordleRecent",
+        JSON.stringify(recent.slice(-NO_REPEAT_HISTORY))
+      );
     }catch{}
   }
 
@@ -502,10 +520,14 @@
     const bank = await loadWordBank();
     const recent = new Set(getRecentWords());
 
-    let pool = bank.filter(w => !recent.has(w));
-    if(pool.length === 0) pool = bank;
+    let pool = bank.filter(word => !recent.has(word));
+
+    if(pool.length === 0){
+      pool = bank;
+    }
 
     const word = pool[Math.floor(Math.random() * pool.length)];
+
     rememberWord(word);
 
     return word;
@@ -528,16 +550,16 @@
     setStatus("");
   }
 
-  function setStatus(msg){
-    statusRow.textContent = msg;
+  function setStatus(message){
+    statusRow.textContent = message;
   }
 
   let toastTimer = null;
 
-  function showToast(msg){
+  function showToast(message){
     clearTimeout(toastTimer);
 
-    toastEl.textContent = msg;
+    toastEl.textContent = message;
     toastEl.classList.add("show");
 
     toastTimer = setTimeout(() => {
@@ -566,11 +588,11 @@
   }
 
   function renderCurrentRow(){
-    const r = guesses.length;
+    const rowIndex = guesses.length;
 
-    for(let c=0;c<WORD_LENGTH;c++){
-      const tile = document.getElementById(`tile-${r}-${c}`);
-      const letter = currentGuess[c] || "";
+    for(let column=0;column<WORD_LENGTH;column++){
+      const tile = document.getElementById(`tile-${rowIndex}-${column}`);
+      const letter = currentGuess[column] || "";
 
       tile.textContent = letter.toUpperCase();
       tile.classList.toggle("filled",!!letter);
@@ -578,8 +600,7 @@
   }
 
   function shakeRow(){
-    const r = guesses.length;
-    const row = document.getElementById("row-" + r);
+    const row = document.getElementById("row-" + guesses.length);
 
     row.classList.remove("shake");
 
@@ -618,44 +639,46 @@
     currentGuess = "";
   }
 
-  function scoreGuess(guess,ans){
+  function scoreGuess(guess,word){
     const result = new Array(WORD_LENGTH).fill("absent");
-    const ansArr = ans.split("");
+    const answerLetters = word.split("");
     const used = new Array(WORD_LENGTH).fill(false);
 
     for(let i=0;i<WORD_LENGTH;i++){
-      if(guess[i] === ansArr[i]){
+      if(guess[i] === answerLetters[i]){
         result[i] = "correct";
         used[i] = true;
       }
     }
 
     for(let i=0;i<WORD_LENGTH;i++){
-      if(result[i] === "correct") continue;
+      if(result[i] === "correct"){
+        continue;
+      }
 
-      const idx = ansArr.findIndex((ch,j) => {
-        return ch === guess[i] && !used[j];
+      const index = answerLetters.findIndex((letter,answerIndex) => {
+        return letter === guess[i] && !used[answerIndex];
       });
 
-      if(idx !== -1){
+      if(index !== -1){
         result[i] = "present";
-        used[idx] = true;
+        used[index] = true;
       }
     }
 
     return result;
   }
 
-  function revealRow(r,guess,result){
-    for(let c=0;c<WORD_LENGTH;c++){
-      const tile = document.getElementById(`tile-${r}-${c}`);
+  function revealRow(rowIndex,guess,result){
+    for(let column=0;column<WORD_LENGTH;column++){
+      const tile = document.getElementById(`tile-${rowIndex}-${column}`);
 
-      tile.textContent = guess[c].toUpperCase();
+      tile.textContent = guess[column].toUpperCase();
 
       setTimeout(() => {
-        tile.classList.add(result[c]);
+        tile.classList.add(result[column]);
         tile.classList.add("flip");
-      },c * 90);
+      },column * 90);
     }
   }
 
@@ -667,30 +690,36 @@
 
   function updateKeyboardColors(guess,result){
     for(let i=0;i<WORD_LENGTH;i++){
-      const btn = keyboardEl.querySelector(`.key[data-key="${guess[i]}"]`);
+      const button = keyboardEl.querySelector(
+        `.key[data-key="${guess[i]}"]`
+      );
 
-      if(!btn) continue;
+      if(!button){
+        continue;
+      }
 
       const newState = result[i];
-      const current = btn.dataset.state;
+      const oldState = button.dataset.state;
 
-      if(!current || keyPriority[newState] > keyPriority[current]){
-        btn.dataset.state = newState;
-        btn.classList.remove("correct","present","absent");
-        btn.classList.add(newState);
+      if(!oldState || keyPriority[newState] > keyPriority[oldState]){
+        button.dataset.state = newState;
+        button.classList.remove("correct","present","absent");
+        button.classList.add(newState);
       }
     }
   }
 
   function resetKeyboardColors(){
-    keyboardEl.querySelectorAll(".key").forEach(btn => {
-      btn.classList.remove("correct","present","absent");
-      delete btn.dataset.state;
+    keyboardEl.querySelectorAll(".key").forEach(button => {
+      button.classList.remove("correct","present","absent");
+      delete button.dataset.state;
     });
   }
 
   function endRound(won){
-    document.getElementById("endTitle").textContent = won ? "You got it!" : "Out of guesses";
+    document.getElementById("endTitle").textContent = won
+      ? "You got it!"
+      : "Out of guesses";
 
     document.getElementById("endBody").textContent = won
       ? `Solved in ${guesses.length} ${guesses.length === 1 ? "guess" : "guesses"}.`
@@ -707,14 +736,26 @@
     await startRound();
   });
 
-  window.addEventListener("keydown",e => {
-    if(endOverlay.classList.contains("show")) return;
+  window.addEventListener("keydown",event => {
+    if(endOverlay.classList.contains("show")){
+      return;
+    }
 
-    const key = e.key.toLowerCase();
+    const key = event.key.toLowerCase();
 
-    if(key === "enter") return handleKey("enter");
-    if(key === "backspace") return handleKey("back");
-    if(/^[a-z]$/.test(key)) return handleKey(key);
+    if(key === "enter"){
+      handleKey("enter");
+      return;
+    }
+
+    if(key === "backspace"){
+      handleKey("back");
+      return;
+    }
+
+    if(/^[a-z]$/.test(key)){
+      handleKey(key);
+    }
   });
 
   const ICONS = {
@@ -729,14 +770,14 @@
       document.documentElement.setAttribute("data-theme",savedTheme);
     }
 
-    const toggleBtn = document.getElementById("themeToggle");
+    const toggleButton = document.getElementById("themeToggle");
 
     function updateIcon(){
       const isDark = document.documentElement.getAttribute("data-theme") === "dark";
 
-      toggleBtn.innerHTML = isDark ? ICONS.light : ICONS.dark;
+      toggleButton.innerHTML = isDark ? ICONS.light : ICONS.dark;
 
-      toggleBtn.setAttribute(
+      toggleButton.setAttribute(
         "aria-label",
         isDark ? "Switch to light mode" : "Switch to dark mode"
       );
@@ -749,12 +790,12 @@
 
     updateIcon();
 
-    toggleBtn.addEventListener("click",() => {
+    toggleButton.addEventListener("click",() => {
       const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-      const next = isDark ? "light" : "dark";
+      const nextTheme = isDark ? "light" : "dark";
 
-      document.documentElement.setAttribute("data-theme",next);
-      localStorage.setItem("wordleTheme",next);
+      document.documentElement.setAttribute("data-theme",nextTheme);
+      localStorage.setItem("wordleTheme",nextTheme);
 
       updateIcon();
     });
@@ -768,3 +809,4 @@
 </script>
 </body>
 </html>
+```
